@@ -78,88 +78,83 @@ export default function FormularioProducto({ productoExistente }) {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-    const precioNum = Number(precio);
-    const precioPromoNum = Number(precioPromocional);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+  setError('');
+  const precioNum = Number(precio);
+  const precioPromoNum = Number(precioPromocional);
 
-    if (precioPromoNum && precioPromoNum >= precioNum) {
-      setError('El precio promocional debe ser menor que el precio normal.');
-      setIsSubmitting(false);
-      return;
+  if (precioPromoNum && precioPromoNum >= precioNum) {
+    setError('El precio promocional debe ser menor que el precio normal.');
+    setIsSubmitting(false);
+    return;
+  }
+
+  try {
+    // Lógica de validación de SKU que ya funciona
+    if (sku && (!productoExistente || sku !== productoExistente.sku)) {
+      const res = await fetch(`/api/productos/validar-sku/${sku}`);
+      const { existe } = await res.json();
+      if (existe) {
+        setError('Este SKU ya está en uso.');
+        setIsSubmitting(false);
+        return;
+      }
     }
 
-    try {
-      let urlsDeImagenesNuevas = [];
-      if (imagenesNuevas.length > 0) {
-        const formData = new FormData();
-        imagenesNuevas.forEach(img => formData.append('files', img.file));
-        const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
-        if (!uploadRes.ok) throw new Error('Falló la subida de imágenes');
-        const data = await uploadRes.json();
-        urlsDeImagenesNuevas = data.urls;
-      }
-
-      const productoFinal = {
-        nombre, sku, descripcion,
-        precio: precioNum,
-        precioPromocional: precioPromoNum,
-        isFeatured, isNew,
-        isQuotable: saleType === 'quotable',
-        categorias: categoriasSeleccionadas,
-        imagenes: [...imagenesExistentes, ...urlsDeImagenesNuevas],
-      };
-
-      let saveRes;
-      if (productoExistente) {
-        if (sku && sku !== productoExistente.sku) {
-          const res = await fetch(`/api/productos/validar-sku/${sku}`);
-          const { existe } = await res.json();
-          if (existe) {
-            setError('Este SKU ya está en uso.');
-            setIsSubmitting(false);
-            return;
-          }
-        }
-        saveRes = await fetch(`/api/productos/${productoExistente._id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(productoFinal),
-        });
-      } else {
-        if (sku) {
-          const res = await fetch(`/api/productos/validar-sku/${sku}`);
-          const { existe } = await res.json();
-          if (existe) {
-            setError('Este SKU ya está en uso.');
-            setIsSubmitting(false);
-            return;
-          }
-        }
-        saveRes = await fetch('/api/productos', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(productoFinal),
-        });
-      }
-
-      if (!saveRes.ok) throw new Error('Falló al guardar el producto');
-
-      // --- ¡NUEVO! Llamada a la revalidación ---
-      // Le avisa a Vercel que actualice la caché de la home
-      await fetch(`/api/revalidate?secret=${process.env.NEXT_PUBLIC_REVALIDATE_SECRET}`);
-
-      alert(`¡Producto ${productoExistente ? 'actualizado' : 'creado'} con éxito!`);
-      router.push('/admin/productos');
-      
-    } catch (err) {
-      alert(`Ocurrió un error: ${err.message}`);
-    } finally {
-      setIsSubmitting(false);
+    // Lógica de subida de imágenes que ya funciona
+    let urlsDeImagenesNuevas = [];
+    if (imagenesNuevas.length > 0) {
+      const formData = new FormData();
+      imagenesNuevas.forEach(img => formData.append('files', img.file));
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: formData });
+      if (!uploadRes.ok) throw new Error('Falló la subida de imágenes');
+      const data = await uploadRes.json();
+      urlsDeImagenesNuevas = data.urls;
     }
-  };
+
+    const productoFinal = {
+      nombre, sku, descripcion,
+      precio: precioNum,
+      precioPromocional: precioPromoNum,
+      isFeatured, isNew,
+      isQuotable: saleType === 'quotable',
+      categorias: categoriasSeleccionadas,
+      imagenes: [...imagenesExistentes, ...urlsDeImagenesNuevas],
+    };
+
+    // Lógica de guardado (Crear o Editar) que ya funciona
+    let saveRes;
+    if (productoExistente) {
+      saveRes = await fetch(`/api/productos/${productoExistente._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productoFinal),
+      });
+    } else {
+      saveRes = await fetch('/api/productos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productoFinal),
+      });
+    }
+
+    if (!saveRes.ok) throw new Error('Falló al guardar el producto');
+
+    // --- ¡LA LLAMADA A LA REVALIDACIÓN! ---
+    // Después de guardar con éxito, llamamos a nuestra API de revalidación
+    await fetch(`/api/revalidate?secret=${process.env.NEXT_PUBLIC_REVALIDATE_SECRET}`);
+
+    alert(`¡Producto ${productoExistente ? 'actualizado' : 'creado'} con éxito!`);
+    router.push('/admin/productos');
+    
+  } catch (err) {
+    alert(`Ocurrió un error: ${err.message}`);
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 bg-white p-8 rounded-lg shadow-md">
