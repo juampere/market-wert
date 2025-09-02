@@ -1,36 +1,27 @@
+// app/(public)/page.js
 import ProductGrid from '@/components/ProductGrid.js';
 import CategoryButtons from '@/components/CategoryButtons.js';
 import SearchBanner from '@/components/SearchBanner.js';
-import ServiciosSection from '@/components/ServiciosSection.js'; // Importamos la sección
-
-async function getProductos() {
-  const res = await fetch('http://localhost:3000/api/productos', { next: { revalidate: 60 } });
-  if (!res.ok) {
-    throw new Error('Falló la carga de productos');
-  }
-  const data = await res.json();
-  return data.productos;
-}
+import ServiciosSection from '@/components/ServiciosSection.js';
+import { getProductos } from '@/lib/data.js'; // <-- Importamos la función directa
 
 export default async function HomePage() {
-  const productos = await getProductos();
+  // Obtenemos los productos directamente de la base de datos, sin fetch
+  const { productos } = await getProductos();
+
   const productosDestacados = productos.filter(p => p.isFeatured === true).slice(0, 4);
   const productosNuevos = productos.filter(p => p.isNew === true).slice(0, 4);
 
   return (
     <>
-      <SearchBanner /> 
-
+      <SearchBanner />
       <div className="container mx-auto px-4">
         <CategoryButtons />
-        
         <ProductGrid 
-          titulo="Destacados" 
+          titulo="Productos Destacados" 
           productos={productosDestacados} 
         />
-        
         <ServiciosSection />
-
         <ProductGrid 
           titulo="Novedades" 
           productos={productosNuevos} 
