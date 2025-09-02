@@ -1,0 +1,39 @@
+@import "tailwindcss";
+
+/* --- ESTILOS PERSONALIZADOS --- */
+.ql-editor {
+  min-height: 250px;
+}
+
+
+/* --- CLASES DE COLOR PERSONALIZADAS --- */
+@layer utilities {
+  .bg-primary {
+    background-color: #3c455c;
+  }
+  .hover\:bg-primary-dark:hover {
+    background-color: #2e3548;
+  }
+  .bg-secondary {
+    background-color: #b37c57;
+  }
+  .text-accent {
+    color: #FF7601;
+  }
+  .hover\:text-accent-dark:hover {
+    color: #e66a00;
+  }
+
+  .bg-accent {
+    background-color: #FF7601;
+  }
+  .bg-background {
+    background-color: #f9fafb;
+  }
+  .text-foreground {
+    color: #1f2937;
+  }
+  .bg-whatsapp {
+    background-color: #25D366;
+  }
+}
