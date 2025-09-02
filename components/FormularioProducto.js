@@ -84,6 +84,7 @@ export default function FormularioProducto({ productoExistente }) {
     setError('');
     const precioNum = Number(precio);
     const precioPromoNum = Number(precioPromocional);
+
     if (precioPromoNum && precioPromoNum >= precioNum) {
       setError('El precio promocional debe ser menor que el precio normal.');
       setIsSubmitting(false);
@@ -145,11 +146,17 @@ export default function FormularioProducto({ productoExistente }) {
       }
 
       if (!saveRes.ok) throw new Error('Falló al guardar el producto');
+
+      // --- ¡NUEVO! Llamada a la revalidación ---
+      // Le avisa a Vercel que actualice la caché de la home
+      await fetch(`/api/revalidate?secret=${process.env.NEXT_PUBLIC_REVALIDATE_SECRET}`);
+
       alert(`¡Producto ${productoExistente ? 'actualizado' : 'creado'} con éxito!`);
       router.push('/admin/productos');
       
     } catch (err) {
       alert(`Ocurrió un error: ${err.message}`);
+    } finally {
       setIsSubmitting(false);
     }
   };
