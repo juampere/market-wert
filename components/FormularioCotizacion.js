@@ -8,14 +8,30 @@ export default function FormularioCotizacion({ productoNombre, onClose }) {
   const [email, setEmail] = useState('');
   const [mensaje, setMensaje] = useState('');
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const numeroCliente = '5493446374568'; // Número de teléfono real
-    const mensajeWA = `¡Hola! Quisiera cotizar el producto *${productoNombre}*. Mi nombre es: ${nombre}.${email ? ` Mi email es: ${email}.` : ''}${mensaje ? ` Mensaje: ${mensaje}` : ''}`;
-    const urlWhatsApp = `https://wa.me/${numeroCliente}?text=${encodeURIComponent(mensajeWA)}`;
-    window.open(urlWhatsApp, '_blank');
-    onClose();
-  };
+  // components/FormularioCotizacion.js -> Reemplazar esta función
+
+const handleSubmit = (event) => {
+  event.preventDefault();
+  const numeroCliente = '5493489356690';
+
+  // --- FORMATO DEL MENSAJE ---
+  // Usamos saltos de línea (%0A) para separar cada dato
+  let mensajeWA = `¡Hola! Quisiera cotizar el siguiente producto:\n\n`;
+  mensajeWA += `*Producto:* ${productoNombre}\n`;
+  mensajeWA += `*Nombre:* ${nombre}\n`;
+
+  if (email) {
+    mensajeWA += `*Email:* ${email}\n`;
+  }
+  if (mensaje) {
+    mensajeWA += `*Mensaje:* ${mensaje}\n`;
+  }
+
+  const urlWhatsApp = `https://wa.me/${numeroCliente}?text=${encodeURIComponent(mensajeWA)}`;
+  
+  window.open(urlWhatsApp, '_blank');
+  onClose();
+};
 
   return (
     <div className="mt-8 border-t-2 border-gray-200 pt-8">
