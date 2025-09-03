@@ -18,7 +18,7 @@ export default async function HomePage() {
       <div className="container mx-auto px-4">
         <CategoryButtons />
         <ProductGrid 
-          titulo="Productos Destacados" 
+          titulo="Destacados" 
           productos={productosDestacados} 
         />
         <ServiciosSection />
